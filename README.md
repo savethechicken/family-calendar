@@ -43,12 +43,16 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
-cp .env.example .env      # Windows: copy .env.example .env
 python run.py
 ```
 
-Open <http://localhost:8080>. You'll see a demo family week so you can judge the
-layout immediately — no calendar setup needed.
+Open <http://localhost:8080>. On first run the app creates `config.yaml`
+from `config.demo.yaml`, so you'll see a demo family week immediately — no
+calendar setup needed.
+
+Then open <http://localhost:8080/settings> to add your real calendars, change
+the timezone and title, and turn on weather. Settings save straight to
+`config.yaml` and apply instantly; no restart.
 
 Useful variants while developing:
 
@@ -58,42 +62,30 @@ Useful variants while developing:
 
 ---
 
-## Connect real calendars
+## Add your calendars (settings page)
 
-### Google Calendar (recommended: secret iCal address)
+Open <http://localhost:8080/settings> — or click the gear in the top-right corner
+of the calendar. Everything on that page is saved to `config.yaml` for you:
+
+1. **+ Add calendar**, give it a name and pick a color.
+2. Paste the calendar's private iCal (`.ics`) address.
+3. Click **Test feed** to confirm it loads and shows upcoming events.
+4. **Save changes.** The TV updates immediately; no restart.
+
+### Where to find the iCal address (Google Calendar)
 
 1. Open [Google Calendar](https://calendar.google.com) on the web.
 2. **Settings** → select the calendar under *Settings for my calendars*.
 3. Scroll to **Integrate calendar**.
 4. Copy **Secret address in iCal format** (ends in `/basic.ics`).
 
-Put it in `.env` (keeps the secret out of `config.yaml` and git):
+Paste that into the settings page. Add one entry per calendar. The secret URL
+grants read access to anyone who has it, so treat it like a password; it stays
+in `config.yaml`, which is gitignored.
 
-```bash
-FAMILY_ICS_URL=https://calendar.google.com/calendar/ical/…/basic.ics
-```
+### Colors
 
-Then in `config.yaml`:
-
-```yaml
-calendars:
-  - id: family
-    name: Family
-    color: "#039be5"
-    source:
-      type: ics
-      url: "${FAMILY_ICS_URL}"
-      cache_ttl_seconds: 300
-```
-
-Restart the server. That's it.
-
-> The secret URL grants read access to that calendar to anyone who has it.
-> Treat it like a password.
-
-### Multiple calendars
-
-Add one block per feed. Colors are any hex value; these match Google's palette:
+Each calendar gets a hex color. These match Google's palette:
 
 | Color | Hex | Color | Hex |
 | --- | --- | --- | --- |
@@ -102,40 +94,45 @@ Add one block per feed. Colors are any hex value; these match Google's palette:
 | Purple | `#8e63ce` | Indigo | `#7986cb` |
 | Red | `#e67c73` | Graphite | `#616161` |
 
-```yaml
-calendars:
-  - id: family
-    name: Family
-    color: "#039be5"
-    source: { type: ics, url: "${FAMILY_ICS_URL}" }
-
-  - id: work
-    name: Work
-    color: "#33b679"
-    source: { type: ics, url: "${WORK_ICS_URL}" }
-
-  - id: school
-    name: School
-    color: "#f6bf26"
-    source: { type: ics, url: "${SCHOOL_ICS_URL}" }
-```
-
 Everything is merged into one week view and color-coded; the Today panel lists
 all calendars together.
 
 ### Outlook, iCloud, school portals
 
-Anything that publishes an `.ics` works with `type: ics`:
+Anything that publishes an `.ics` works. In the settings page choose
+**ICS / iCal feed** and paste the link:
 
 - **Outlook.com**: Settings → Calendar → Shared calendars → **Publish a
   calendar** → copy the ICS link.
 - **iCloud**: Calendar app → Share → **Public Calendar** → copy the `webcal://`
-  link (`webcal://` is converted to `https://` automatically).
+  link (`webcal://` is accepted and converted to `https://`).
 - **School / sports team**: look for "Subscribe", "Export" or "Add to calendar"
   and use the `.ics` URL, not the website URL.
 
 If it opens a file download instead of showing a page, that's usually the right
 link.
+
+### Protecting the settings page
+
+By default anyone on your home network can open `/settings`. To require a
+password, add this to `config.yaml` (or set the `SKYLIGHT_ADMIN_TOKEN`
+environment variable):
+
+```yaml
+server:
+  admin_token: "pick-a-long-password"
+```
+
+The settings page asks for it once per browser session. The public calendar
+stays read-only either way — the token only guards changes.
+
+### Editing `config.yaml` by hand
+
+The settings page is the easy path, but `config.yaml` is still a normal YAML
+file (see `config.example.yaml` for every option). You can edit it directly:
+the server watches the file and reloads within about five seconds. It is
+gitignored on purpose, because it holds your private calendar URLs.
+
 
 ---
 
@@ -170,17 +167,16 @@ In `raspi-config`:
 > images may use Wayfire. The installer writes to both labwc and XDG autostart
 > locations. If you are on Wayfire, see *Manual kiosk test* below.
 
-### 2. Copy the project and configure it
+### 2. Copy the project
 
 ```bash
 cd ~
 git clone <your-repo-url> skylight     # or scp the folder from your computer
 cd skylight
-cp config.example.yaml config.yaml
-cp .env.example .env
-nano config.yaml                       # set timezone, title, calendar URLs
-nano .env                              # FAMILY_ICS_URL=...
 ```
+
+No config editing yet — the first start creates `config.yaml` with demo data and
+you set everything up in the browser afterwards.
 
 If you copied the folder from Windows, fix line endings once:
 
@@ -206,20 +202,33 @@ sudo reboot
 
 The calendar should appear on the TV a few seconds after the desktop loads.
 
-### 4. Verify and operate
+### 4. Add your calendars
+
+From your phone or laptop on the same network:
+
+1. Open `http://<pi-ip>:8080/settings`.
+2. Add each calendar's private iCal address, test the feed, and save.
+3. Optionally set the timezone, title, theme and weather.
+
+Changes apply to the TV immediately. If you want the settings page password
+protected, set `server.admin_token` in `~/skylight/config.yaml` once (see
+*Protecting the settings page* above).
+
+### 5. Verify and operate
 
 ```bash
 # from any device on the LAN
 curl http://<pi-ip>:8080/api/health
 
 journalctl -u skylight -f        # live server logs
-sudo systemctl restart skylight  # after editing config.yaml or .env
+sudo systemctl restart skylight  # rarely needed; config edits reload automatically
 ```
 
 Open `http://<pi-ip>:8080` in a browser on your phone or laptop to check the
-layout before looking at the TV.
+layout before looking at the TV. The gear icon in the top-right goes to the
+settings page.
 
-### 5. Updating
+### 6. Updating
 
 ```bash
 cd ~/skylight
@@ -228,8 +237,9 @@ git pull
 sudo systemctl restart skylight
 ```
 
-The kiosk reloads itself once a day and whenever it wakes, so no manual browser
-restart is usually needed.
+`config.yaml` is gitignored, so `git pull` never touches your calendars or
+password. The kiosk reloads itself once a day and whenever it wakes, so no
+manual browser restart is usually needed.
 
 ### Manual kiosk test
 
@@ -259,9 +269,12 @@ If that works, the autostart entry is the problem:
 
 ## Configuration reference
 
-`config.yaml` is read at startup (set `SKYLIGHT_CONFIG=/path/to/config.yaml` to
-use another file). `${VAR}` placeholders are expanded from the environment, so
-secrets can live in `.env`.
+`config.yaml` is created on first run from `config.demo.yaml` and is normally
+managed by the settings page. It is gitignored because it holds your private
+calendar URLs. Manual edits are fine: the server watches the file and reloads
+within about five seconds. Set `SKYLIGHT_CONFIG=/path/to/config.yaml` to use a
+different file. `${VAR}` placeholders are still expanded from the environment,
+so advanced setups can keep secrets in `.env`.
 
 ### `server`
 
@@ -269,6 +282,7 @@ secrets can live in `.env`.
 | --- | --- | --- |
 | `host` | `0.0.0.0` | `0.0.0.0` makes the UI reachable from your LAN |
 | `port` | `8080` | |
+| `admin_token` | *(empty)* | Password for `/settings`; also settable via `SKYLIGHT_ADMIN_TOKEN`. Empty means anyone on the LAN can change settings |
 
 ### `display`
 
@@ -338,7 +352,9 @@ updates, many calendars without many URLs, or per-event colors later.
    GOOGLE_REFRESH_TOKEN=...
    ```
 
-6. Use a `google` source in `config.yaml` (see `config.example.yaml`).
+6. Use a `google` source in `config.yaml` (see `config.example.yaml`). Google
+   API calendars are read-only in the settings page — they are preserved when
+   you save, and their tokens are never sent to the browser.
 
 The scope requested is `calendar.readonly`. Tokens are stored only on your Pi.
 
@@ -352,6 +368,9 @@ The scope requested is `calendar.readonly`. Tokens are stored only on your Pi.
 | `GET /api/config` | Public display settings (never secrets) |
 | `GET /api/events?start=…&end=…` | Merged events; `days=7` computes from this week |
 | `GET /api/weather` | Current conditions + 3-day outlook |
+| `GET /api/settings` | Full settings (includes editable ICS URLs; requires the admin token if set) |
+| `PUT /api/settings` | Validate + save settings and hot-reload; partial payloads allowed |
+| `POST /api/settings/test-feed` | Fetch a feed and report upcoming events without saving it |
 | `GET /api/docs` | Interactive OpenAPI docs |
 
 Event shape:
@@ -413,9 +432,10 @@ The kiosk profile lives in `/tmp` to spare the SD card; it is rebuilt at boot.
 `xset` cannot help; the raspi-config setting is the reliable fix.
 
 **I edited config.yaml but nothing changed.**
-The service caches config at startup: `sudo systemctl restart skylight`.
-Static files are served fresh, but hard-reload the kiosk with
-`pkill chromium` (it relaunches on next login) if needed.
+Check the server log (`journalctl -u skylight -f`). The server watches
+`config.yaml` and reloads within ~5 seconds; if the new file is invalid it keeps
+the previous settings and logs why. Fix the error and it will reload. You can
+also restart explicitly with `sudo systemctl restart skylight`.
 
 **Chromium shows an error page for a few seconds at boot.**
 The kiosk script waits up to 60 seconds for `http://localhost:8080/api/health`
@@ -426,11 +446,13 @@ before opening the browser. If it still appears, the backend failed to start —
 
 ## Exposing it beyond your LAN
 
-The server has no login because it is meant for a trusted home network, and it
-is read-only. Do **not** port-forward it to the internet. If you want to check
-the calendar remotely, use a VPN such as [Tailscale](https://tailscale.com) or
-put it behind an authenticating reverse proxy. Treat the `/api/events` output
-as private family data.
+The calendar and event API have no login because they are meant for a trusted
+home network and are read-only. The settings page **is** writable: set
+`server.admin_token` before letting untrusted devices onto your network. Do
+**not** port-forward any of it to the internet. If you want to check the
+calendar remotely, use a VPN such as [Tailscale](https://tailscale.com) or put
+it behind an authenticating reverse proxy. Treat the `/api/events` output as
+private family data.
 
 ---
 
@@ -441,8 +463,10 @@ pip install -r requirements-dev.txt
 python -m pytest
 ```
 
-Covers ICS recurrence expansion, all-day handling, config validation, and the
-API contract (17 tests, no network required).
+Covers ICS recurrence expansion, all-day handling, config validation, the API
+contract, and the settings UI (GET/PUT round-trip, partial payloads, validation
+failures, admin-token auth, Google-calendar preservation, feed preview). Run
+`python -m pytest` (27 tests, no network required).
 
 ---
 
@@ -454,13 +478,14 @@ skylight/
 │   ├── config.py          # YAML loading, validation, env expansion
 │   ├── main.py            # FastAPI routes
 │   ├── service.py         # merge calendars, isolate failures
+│   ├── settings.py        # settings UI backend (validate/save/preview)
 │   ├── weather.py         # Open-Meteo client + WMO code mapping
 │   ├── sources/
 │   │   ├── base.py        # Event + CalendarSource protocol
 │   │   ├── ics.py         # ICS fetch, disk cache, RRULE expansion
 │   │   ├── demo.py        # sample week
 │   │   └── google.py      # optional Calendar API source
-│   └── static/            # index.html, style.css, app.js
+│   └── static/            # index.html, style.css, app.js, settings.*
 ├── deploy/
 │   ├── install.sh         # Pi 4 installer
 │   ├── kiosk.sh           # Chromium kiosk launcher
@@ -468,8 +493,9 @@ skylight/
 │   └── skylight-kiosk.desktop
 ├── scripts/google_auth.py # one-time OAuth refresh-token helper
 ├── tests/
-├── config.yaml            # working demo config
-└── config.example.yaml    # documented template
+├── config.demo.yaml       # bootstrap config copied to config.yaml on first run
+├── config.example.yaml    # documented template (manual reference)
+└── config.yaml            # your machine's config (gitignored)
 ```
 
 ### Adding a new source type

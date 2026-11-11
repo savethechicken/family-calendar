@@ -9,7 +9,7 @@ from pathlib import Path
 
 import uvicorn
 
-from app.config import load_config
+from app.config import ensure_config_file, load_config
 from app.main import create_app
 
 
@@ -20,6 +20,7 @@ def main() -> None:
         datefmt="%H:%M:%S",
     )
     config_path = Path(os.environ.get("SKYLIGHT_CONFIG", "config.yaml"))
+    ensure_config_file(config_path)
     config = load_config(config_path)
     uvicorn.run(
         create_app(config_path),

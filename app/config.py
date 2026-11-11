@@ -38,6 +38,7 @@ def _expand_env(value: Any) -> Any:
 class ServerConfig:
     host: str = "0.0.0.0"
     port: int = 8080
+    admin_token: str = ""
 
 
 @dataclass(frozen=True)
@@ -155,6 +156,37 @@ def _clamp_hour(value: Any, default: int, name: str) -> int:
     return hour
 
 
+def ensure_config_file(path: str | Path) -> Path:
+    """Create a demo config on first run so the app always boots.
+
+    The generated ``config.yaml`` is machine-managed by the settings UI and is
+    gitignored; ``config.demo.yaml`` and ``config.example.yaml`` are the
+    versioned templates.
+    """
+    target = Path(path).expanduser().resolve()
+    if target.exists():
+        return target
+
+    candidates = [
+        target.parent / "config.demo.yaml",
+        Path(__file__).resolve().parent.parent / "config.demo.yaml",
+    ]
+    demo = next((candidate for candidate in candidates if candidate.exists()), None)
+    if demo is None:
+        raise ConfigError(
+            f"No config at {target} and no config.demo.yaml to copy. "
+            "Copy config.example.yaml to config.yaml and edit it."
+        )
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(demo.read_text(encoding="utf-8"), encoding="utf-8")
+    try:
+        target.chmod(0o600)
+    except OSError:
+        pass
+    return target
+
+
 def load_config(path: str | Path) -> Config:
     config_path = Path(path).expanduser().resolve()
     if not config_path.exists():
@@ -180,6 +212,11 @@ def load_config(path: str | Path) -> Config:
     server = ServerConfig(
         host=str(server_raw.get("host", "0.0.0.0")),
         port=int(server_raw.get("port", 8080)),
+        admin_token=str(
+            server_raw.get("admin_token")
+            or os.environ.get("SKYLIGHT_ADMIN_TOKEN")
+            or ""
+        ).strip(),
     )
 
     display_raw = _require_mapping(raw.get("display"), "display")

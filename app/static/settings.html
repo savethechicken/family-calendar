@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Settings · Family Calendar</title>
+    <link rel="icon" href="data:," />
+    <script>
+      (function () {
+        var t = new URLSearchParams(location.search).get("theme");
+        if (t !== "light" && t !== "dark") {
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/settings.css" />
+  </head>
+  <body class="settings-page">
+    <div class="settings-app">
+      <header class="settings-top">
+        <div>
+          <h1>Settings</h1>
+          <p class="settings-sub">
+            Changes apply immediately — the calendar reloads without a restart.
+          </p>
+        </div>
+        <a class="btn ghost" href="/">← Back to calendar</a>
+      </header>
+
+      <form id="settings-form" novalidate>
+        <section class="card">
+          <div class="card-head">
+            <h2>Display</h2>
+            <p>How the wall calendar looks on the TV.</p>
+          </div>
+          <div class="grid-2">
+            <label class="field">
+              <span>Title</span>
+              <input id="display-title" type="text" maxlength="80" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span>Timezone</span>
+              <input id="display-timezone" type="text" list="timezone-list" autocomplete="off" />
+              <datalist id="timezone-list"></datalist>
+            </label>
+            <label class="field">
+              <span>Week starts on</span>
+              <select id="display-week-start">
+                <option value="monday">Monday</option>
+                <option value="sunday">Sunday</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Time format</span>
+              <select id="display-time-format">
+                <option value="12h">12-hour (2:30 PM)</option>
+                <option value="24h">24-hour (14:30)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Theme</span>
+              <select id="display-theme">
+                <option value="auto">Auto (follow device)</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+            <div class="field">
+              <span>Accent color</span>
+              <div class="color-row">
+                <input id="display-accent" type="color" />
+                <input id="display-accent-text" type="text" maxlength="7" spellcheck="false" />
+              </div>
+            </div>
+            <label class="field inline">
+              <input id="display-clock" type="checkbox" />
+              <span>Show the clock</span>
+            </label>
+            <label class="field">
+              <span>Refresh every (seconds)</span>
+              <input id="display-refresh" type="number" min="15" max="3600" step="5" />
+            </label>
+            <label class="field">
+              <span>Day starts at (hour)</span>
+              <input id="display-day-start" type="number" min="0" max="23" step="1" />
+            </label>
+            <label class="field">
+              <span>Day ends at (hour)</span>
+              <input id="display-day-end" type="number" min="1" max="24" step="1" />
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Weather</h2>
+            <p>Optional current conditions in the top-right corner (Open-Meteo, no API key).</p>
+          </div>
+          <label class="field inline">
+            <input id="weather-enabled" type="checkbox" />
+            <span>Show weather</span>
+          </label>
+          <div class="grid-2">
+            <label class="field">
+              <span>Label</span>
+              <input id="weather-location" type="text" maxlength="60" placeholder="Home" />
+            </label>
+            <label class="field">
+              <span>Units</span>
+              <select id="weather-units">
+                <option value="imperial">Fahrenheit (°F, mph)</option>
+                <option value="metric">Celsius (°C, km/h)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Latitude</span>
+              <input id="weather-latitude" type="number" step="any" min="-90" max="90" />
+            </label>
+            <label class="field">
+              <span>Longitude</span>
+              <input id="weather-longitude" type="number" step="any" min="-180" max="180" />
+            </label>
+          </div>
+          <p class="hint">
+            Right-click your home in Google/Apple Maps → “What’s here?” to get coordinates.
+          </p>
+        </section>
+
+        <section class="card">
+          <div class="card-head card-head-row">
+            <div>
+              <h2>Calendars</h2>
+              <p>Paste the calendar’s private iCal (.ics) address. Add as many as you like.</p>
+            </div>
+            <button class="btn" type="button" id="add-calendar">+ Add calendar</button>
+          </div>
+          <div id="calendars" class="calendars"></div>
+          <p class="hint">
+            Google Calendar → Settings → <em>your calendar</em> → Integrate calendar →
+            <strong>Secret address in iCal format</strong>. Each URL is a secret: treat it
+            like a password. It is stored in <code id="config-path">config.yaml</code>.
+          </p>
+        </section>
+
+        <section class="card compact">
+          <div class="card-head">
+            <h2>Access</h2>
+            <p id="access-note"></p>
+          </div>
+        </section>
+
+        <div class="savebar">
+          <span id="save-status" class="save-status"></span>
+          <button class="btn primary" type="submit" id="save-button">Save changes</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <div id="auth" class="auth hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <form id="auth-form" class="auth-card">
+        <h2 id="auth-title">Settings are locked</h2>
+        <p>Enter the admin password configured with <code>server.admin_token</code>.</p>
+        <label class="field">
+          <span>Password</span>
+          <input id="auth-token" type="password" autocomplete="current-password" required />
+        </label>
+        <button class="btn primary" type="submit">Unlock</button>
+      </form>
+    </div>
+
+    <script type="module" src="/static/settings.js"></script>
+  </body>
+</html>

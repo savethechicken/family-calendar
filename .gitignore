@@ -6,5 +6,7 @@ venv/
 .ruff_cache/
 cache/
 .env
+config.yaml
+config.yaml.bak
 .DS_Store
 Thumbs.db

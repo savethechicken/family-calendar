@@ -97,6 +97,32 @@ body {
   text-align: right;
 }
 
+.settings-link {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--faint);
+  border-radius: 9px;
+  opacity: 0.55;
+  transition: opacity 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.settings-link:hover,
+.settings-link:focus-visible {
+  color: var(--text);
+  background: var(--surface-2);
+  opacity: 1;
+  outline: none;
+}
+
+.settings-link svg {
+  width: 21px;
+  height: 21px;
+}
+
 .clock {
   font-variant-numeric: tabular-nums;
   font-size: 42px;

@@ -37,8 +37,8 @@ mkdir -p "${APP_DIR}/cache"
 chmod +x "${APP_DIR}/deploy/kiosk.sh"
 
 if [ ! -f "${APP_DIR}/config.yaml" ]; then
-  cp "${APP_DIR}/config.example.yaml" "${APP_DIR}/config.yaml"
-  echo "==> Created config.yaml from the template — edit it with your calendar URLs."
+  echo "==> No config.yaml yet: the app will start with demo data."
+  echo "    Add your real calendars at http://localhost:8080/settings"
 fi
 touch "${APP_DIR}/.env"
 
@@ -104,9 +104,10 @@ fi
 IP="$(hostname -I | awk '{print $1}')"
 echo
 echo "Done."
-echo "  Local:  http://localhost:8080"
-echo "  LAN:    http://${IP}:8080"
-echo "  Logs:   journalctl -u skylight -f"
-echo "  Config: ${APP_DIR}/config.yaml"
+echo "  Calendar: http://localhost:8080"
+echo "  Settings: http://localhost:8080/settings   <- add your calendars here"
+echo "  LAN:      http://${IP}:8080/settings"
+echo "  Logs:     journalctl -u skylight -f"
+echo "  Config:   ${APP_DIR}/config.yaml (managed by the settings page)"
 echo
 echo "Reboot (or log out and back in) to start the kiosk on the TV."
