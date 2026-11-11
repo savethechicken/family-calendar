@@ -214,6 +214,7 @@ def load_config(path: str | Path) -> Config:
         port=int(server_raw.get("port", 8080)),
         admin_token=str(
             server_raw.get("admin_token")
+            or os.environ.get("FAMILY_CALENDAR_ADMIN_TOKEN")
             or os.environ.get("SKYLIGHT_ADMIN_TOKEN")
             or ""
         ).strip(),

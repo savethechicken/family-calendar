@@ -1,4 +1,4 @@
-# Skylight-style Family Calendar
+# Family Calendar
 
 A wall calendar for a TV: a big, glanceable week view with a **Today** panel,
 clock, optional weather, and any number of color-coded calendars merged
@@ -34,7 +34,7 @@ keep working when the Wi-Fi doesn't.
 Requires Python 3.11+.
 
 ```bash
-cd skylight
+cd family-calendar
 python -m venv .venv
 
 # Windows
@@ -171,8 +171,8 @@ In `raspi-config`:
 
 ```bash
 cd ~
-git clone <your-repo-url> skylight     # or scp the folder from your computer
-cd skylight
+git clone <your-repo-url> family-calendar     # or scp the folder from your computer
+cd family-calendar
 ```
 
 No config editing yet — the first start creates `config.yaml` with demo data and
@@ -193,7 +193,7 @@ chmod +x deploy/install.sh
 ```
 
 The script installs Chromium and Python, creates `.venv`, sets up a
-`skylight` systemd service that starts on boot, and adds the kiosk to desktop
+`family-calendar` systemd service that starts on boot, and adds the kiosk to desktop
 autostart. Then:
 
 ```bash
@@ -211,7 +211,7 @@ From your phone or laptop on the same network:
 3. Optionally set the timezone, title, theme and weather.
 
 Changes apply to the TV immediately. If you want the settings page password
-protected, set `server.admin_token` in `~/skylight/config.yaml` once (see
+protected, set `server.admin_token` in `~/family-calendar/config.yaml` once (see
 *Protecting the settings page* above).
 
 ### 5. Verify and operate
@@ -220,8 +220,8 @@ protected, set `server.admin_token` in `~/skylight/config.yaml` once (see
 # from any device on the LAN
 curl http://<pi-ip>:8080/api/health
 
-journalctl -u skylight -f        # live server logs
-sudo systemctl restart skylight  # rarely needed; config edits reload automatically
+journalctl -u family-calendar -f        # live server logs
+sudo systemctl restart family-calendar  # rarely needed; config edits reload automatically
 ```
 
 Open `http://<pi-ip>:8080` in a browser on your phone or laptop to check the
@@ -231,10 +231,10 @@ settings page.
 ### 6. Updating
 
 ```bash
-cd ~/skylight
+cd ~/family-calendar
 git pull
 .venv/bin/pip install -r requirements.txt
-sudo systemctl restart skylight
+sudo systemctl restart family-calendar
 ```
 
 `config.yaml` is gitignored, so `git pull` never touches your calendars or
@@ -247,7 +247,7 @@ If the TV shows the desktop instead of the calendar, run the kiosk script by
 hand from a terminal **in the desktop session**:
 
 ```bash
-SKYLIGHT_ONESHOT=1 ~/skylight/deploy/kiosk.sh
+FAMILY_CALENDAR_ONESHOT=1 ~/family-calendar/deploy/kiosk.sh
 ```
 
 `SKYLIGHT_ONESHOT=1` stops it from relaunching forever so you can quit with
@@ -257,11 +257,11 @@ If that works, the autostart entry is the problem:
 
 - **Wayland / labwc** (default on current Raspberry Pi OS): check that
   `~/.config/labwc/autostart` contains a line ending in
-  `${HOME}/skylight/deploy/kiosk.sh &`. The trailing `&` matters.
-- **X11 / LXDE**: check `~/.config/autostart/skylight-kiosk.desktop` and make
+  `${HOME}/family-calendar/deploy/kiosk.sh &`. The trailing `&` matters.
+- **X11 / LXDE**: check `~/.config/autostart/family-calendar-kiosk.desktop` and make
   sure its `Exec=` path is correct.
 - **Wayfire** (older Bookworm images): add
-  `skylight = /home/pi/skylight/deploy/kiosk.sh` under `[autostart]` in
+  `family-calendar = /home/pi/family-calendar/deploy/kiosk.sh` under `[autostart]` in
   `~/.config/wayfire.ini`, or switch to labwc via `raspi-config` → Advanced
   Options → Wayland → labwc.
 
@@ -399,7 +399,7 @@ the UI keeps showing the cached copy in that case.
 
 **The TV shows a white/blank page.**
 Check `curl http://localhost:8080/api/health`. If that fails, the service isn't
-running: `journalctl -u skylight -n 50`. If it succeeds, the kiosk URL or
+running: `journalctl -u family-calendar -n 50`. If it succeeds, the kiosk URL or
 autostart is wrong.
 
 **"Family couldn't refresh — showing the last saved copy."**
@@ -432,15 +432,15 @@ The kiosk profile lives in `/tmp` to spare the SD card; it is rebuilt at boot.
 `xset` cannot help; the raspi-config setting is the reliable fix.
 
 **I edited config.yaml but nothing changed.**
-Check the server log (`journalctl -u skylight -f`). The server watches
+Check the server log (`journalctl -u family-calendar -f`). The server watches
 `config.yaml` and reloads within ~5 seconds; if the new file is invalid it keeps
 the previous settings and logs why. Fix the error and it will reload. You can
-also restart explicitly with `sudo systemctl restart skylight`.
+also restart explicitly with `sudo systemctl restart family-calendar`.
 
 **Chromium shows an error page for a few seconds at boot.**
 The kiosk script waits up to 60 seconds for `http://localhost:8080/api/health`
 before opening the browser. If it still appears, the backend failed to start —
-`journalctl -u skylight -n 50`.
+`journalctl -u family-calendar -n 50`.
 
 ---
 
@@ -473,7 +473,7 @@ failures, admin-token auth, Google-calendar preservation, feed preview). Run
 ## Project layout
 
 ```
-skylight/
+family-calendar/
 ├── app/
 │   ├── config.py          # YAML loading, validation, env expansion
 │   ├── main.py            # FastAPI routes
@@ -489,8 +489,8 @@ skylight/
 ├── deploy/
 │   ├── install.sh         # Pi 4 installer
 │   ├── kiosk.sh           # Chromium kiosk launcher
-│   ├── skylight.service   # example systemd unit
-│   └── skylight-kiosk.desktop
+│   ├── family-calendar.service   # example systemd unit
+│   └── family-calendar-kiosk.desktop
 ├── scripts/google_auth.py # one-time OAuth refresh-token helper
 ├── tests/
 ├── config.demo.yaml       # bootstrap config copied to config.yaml on first run
@@ -513,7 +513,7 @@ The architecture is deliberately boring so these are incremental:
 1. **Month view** — add a `?view=month` renderer; the events endpoint already
    accepts up to 62-day ranges.
 2. **Chores / meals / rewards** — a second sidebar panel backed by a tiny SQLite
-   table, Skylight-style.
+   table, Family Calendar-style.
 3. **Photo screensaver** — idle timer that fades to a slideshow, then returns to
    the calendar on motion or touch.
 4. **Touch support** — swipe between weeks on a touchscreen; the layout already

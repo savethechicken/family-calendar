@@ -25,7 +25,7 @@ from .base import Event
 log = logging.getLogger(__name__)
 
 MAX_EVENTS = 2000
-USER_AGENT = "skylight-calendar/0.1 (+https://github.com/)"
+USER_AGENT = "family-calendar/0.1 (+https://github.com/)"
 
 
 def _as_aware(value: datetime, tz) -> datetime:

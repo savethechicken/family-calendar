@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://www.googleapis.com/calendar/v3"
-USER_AGENT = "skylight-calendar/0.1"
+USER_AGENT = "family-calendar/0.1"
 
 
 class GoogleSource:

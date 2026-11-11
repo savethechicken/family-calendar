@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Skylight Calendar
+Name=Family Calendar
 Comment=Family calendar kiosk
 Exec=__APP_DIR__/deploy/kiosk.sh
 Terminal=false

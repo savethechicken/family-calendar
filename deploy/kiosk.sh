@@ -3,10 +3,10 @@
 # Called from ~/.config/labwc/autostart (Wayland) or an XDG autostart entry (X11).
 set -euo pipefail
 
-URL="${SKYLIGHT_URL:-http://localhost:8080}"
-PROFILE_DIR="${SKYLIGHT_CHROMIUM_PROFILE:-/tmp/skylight-chromium}"
+URL="${FAMILY_CALENDAR_URL:-http://localhost:8080}"
+PROFILE_DIR="${FAMILY_CALENDAR_CHROMIUM_PROFILE:-/tmp/family-calendar-chromium}"
 
-BROWSER="${SKYLIGHT_BROWSER:-}"
+BROWSER="${FAMILY_CALENDAR_BROWSER:-}"
 if [ -z "${BROWSER}" ]; then
   # Trixie ships `chromium`; Bookworm ships `chromium-browser`.
   BROWSER="$(command -v chromium || command -v chromium-browser || true)"
@@ -58,7 +58,7 @@ fi
 # Restart the browser if it ever crashes, unless explicitly running once.
 while true; do
   "${BROWSER}" "${FLAGS[@]}" || true
-  if [ "${SKYLIGHT_ONESHOT:-0}" = "1" ]; then
+  if [ "${FAMILY_CALENDAR_ONESHOT:-0}" = "1" ]; then
     break
   fi
   sleep 3

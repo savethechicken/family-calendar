@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install Skylight on Raspberry Pi OS (Pi 4 / Pi 5, 64-bit recommended).
+# Install Family Calendar on Raspberry Pi OS (Pi 4 / Pi 5, 64-bit recommended).
 # Run as your normal desktop user — the script calls sudo when needed.
 set -euo pipefail
 
@@ -13,7 +13,7 @@ if [ "${EUID}" -eq 0 ]; then
 fi
 SUDO="sudo"
 
-echo "==> Installing Skylight for user '${SERVICE_USER}' from ${APP_DIR}"
+echo "==> Installing Family Calendar for user '${SERVICE_USER}' from ${APP_DIR}"
 
 $SUDO apt-get update
 $SUDO apt-get install -y --no-install-recommends python3-venv python3-pip curl fonts-dejavu-core
@@ -43,9 +43,9 @@ fi
 touch "${APP_DIR}/.env"
 
 echo "==> Installing systemd service"
-$SUDO tee /etc/systemd/system/skylight.service >/dev/null <<EOF
+$SUDO tee /etc/systemd/system/family-calendar.service >/dev/null <<EOF
 [Unit]
-Description=Skylight family calendar
+Description=Family calendar
 After=network-online.target
 Wants=network-online.target
 
@@ -53,7 +53,7 @@ Wants=network-online.target
 Type=simple
 User=${SERVICE_USER}
 WorkingDirectory=${APP_DIR}
-Environment=SKYLIGHT_CONFIG=${APP_DIR}/config.yaml
+Environment=FAMILY_CALENDAR_CONFIG=${APP_DIR}/config.yaml
 Environment=PYTHONUNBUFFERED=1
 EnvironmentFile=-${APP_DIR}/.env
 ExecStart=${APP_DIR}/.venv/bin/python ${APP_DIR}/run.py
@@ -65,24 +65,24 @@ WantedBy=multi-user.target
 EOF
 
 $SUDO systemctl daemon-reload
-$SUDO systemctl enable --now skylight.service
+$SUDO systemctl enable --now family-calendar.service
 
 echo "==> Installing kiosk autostart"
 USER_HOME="$(getent passwd "${SERVICE_USER}" | cut -d: -f6)"
 
 # X11 / LXDE sessions.
 mkdir -p "${USER_HOME}/.config/autostart"
-sed "s|__APP_DIR__|${APP_DIR}|g" "${APP_DIR}/deploy/skylight-kiosk.desktop" \
-  > "${USER_HOME}/.config/autostart/skylight-kiosk.desktop"
+sed "s|__APP_DIR__|${APP_DIR}|g" "${APP_DIR}/deploy/family-calendar-kiosk.desktop" \
+  > "${USER_HOME}/.config/autostart/family-calendar-kiosk.desktop"
 
 # Wayland / labwc sessions (the default on Bookworm and Trixie).
 LABWC_DIR="${USER_HOME}/.config/labwc"
 mkdir -p "${LABWC_DIR}"
 touch "${LABWC_DIR}/autostart"
-if ! grep -q "skylight-kiosk" "${LABWC_DIR}/autostart"; then
+if ! grep -q "family-calendar-kiosk" "${LABWC_DIR}/autostart"; then
   {
     echo ""
-    echo "# skylight-kiosk"
+    echo "# family-calendar-kiosk"
     echo "${APP_DIR}/deploy/kiosk.sh &"
   } >> "${LABWC_DIR}/autostart"
 fi
@@ -92,7 +92,7 @@ chown -R "${SERVICE_USER}:" "${USER_HOME}/.config/autostart" "${LABWC_DIR}" || t
 if [ -f "${USER_HOME}/.config/wayfire.ini" ]; then
   echo "==> Wayfire config detected. If the kiosk does not start, add this under"
   echo "    the [autostart] section of ${USER_HOME}/.config/wayfire.ini:"
-  echo "    skylight = ${APP_DIR}/deploy/kiosk.sh"
+  echo "    family-calendar = ${APP_DIR}/deploy/kiosk.sh"
   echo "    ...or switch to labwc in raspi-config (Advanced Options -> Wayland)."
 fi
 
@@ -107,7 +107,7 @@ echo "Done."
 echo "  Calendar: http://localhost:8080"
 echo "  Settings: http://localhost:8080/settings   <- add your calendars here"
 echo "  LAN:      http://${IP}:8080/settings"
-echo "  Logs:     journalctl -u skylight -f"
+echo "  Logs:     journalctl -u family-calendar -f"
 echo "  Config:   ${APP_DIR}/config.yaml (managed by the settings page)"
 echo
 echo "Reboot (or log out and back in) to start the kiosk on the TV."

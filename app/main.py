@@ -124,7 +124,12 @@ async def _watch_config(app: FastAPI) -> None:
 
 
 def create_app(config_path: str | Path | None = None) -> FastAPI:
-    path = Path(config_path or os.environ.get("SKYLIGHT_CONFIG", "config.yaml"))
+    path = Path(
+        config_path
+        or os.environ.get("FAMILY_CALENDAR_CONFIG")
+        or os.environ.get("SKYLIGHT_CONFIG")
+        or "config.yaml"
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -149,7 +154,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
             )
 
         log.info(
-            "Skylight %s ready: %s calendar(s), timezone %s",
+            "Family Calendar %s ready: %s calendar(s), timezone %s",
             __version__,
             len(config.calendars),
             config.display.timezone,
@@ -166,7 +171,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
             await app.state.weather.aclose()
 
     app = FastAPI(
-        title="Skylight Calendar",
+        title="Family Calendar",
         version=__version__,
         lifespan=lifespan,
         docs_url="/api/docs",

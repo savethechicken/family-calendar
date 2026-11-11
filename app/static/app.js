@@ -1,4 +1,4 @@
-/* Skylight-style wall calendar — vanilla JS, no build step. */
+/* Family calendar — vanilla JS, no build step. */
 
 const $ = (selector) => document.querySelector(selector);
 

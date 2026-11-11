@@ -19,7 +19,11 @@ def main() -> None:
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
-    config_path = Path(os.environ.get("SKYLIGHT_CONFIG", "config.yaml"))
+    config_path = Path(
+        os.environ.get("FAMILY_CALENDAR_CONFIG")
+        or os.environ.get("SKYLIGHT_CONFIG")
+        or "config.yaml"
+    )
     ensure_config_file(config_path)
     config = load_config(config_path)
     uvicorn.run(

@@ -1,0 +1,18 @@
+[Unit]
+Description=Family calendar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/family-calendar
+Environment=FAMILY_CALENDAR_CONFIG=/home/pi/family-calendar/config.yaml
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/home/pi/family-calendar/.env
+ExecStart=/home/pi/family-calendar/.venv/bin/python /home/pi/family-calendar/run.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

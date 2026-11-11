@@ -32,7 +32,7 @@ EDITABLE_SOURCE_TYPES = {"ics", "demo"}
 COLOR_PATTERN = re.compile(r"^#[0-9a-fA-F]{6}$")
 ID_PATTERN = re.compile(r"[^a-z0-9_-]+")
 
-HEADER = """# Managed by the Skylight settings UI (http://<host>:8080/settings).
+HEADER = """# Managed by the Family Calendar settings UI (http://<host>:8080/settings).
 # Manual edits are fine too: the server watches this file and reloads it.
 # See config.example.yaml for the fully commented reference.
 """
@@ -387,7 +387,7 @@ async def preview_feed(url: Any, timezone) -> dict[str, Any]:
         source=SourceConfig(type="ics", url=feed_url, cache_ttl_seconds=30),
     )
 
-    with tempfile.TemporaryDirectory(prefix="skylight-preview-") as folder:
+    with tempfile.TemporaryDirectory(prefix="family-calendar-preview-") as folder:
         source = IcsSource(calendar, cache_dir=Path(folder), tz=timezone)
         now = datetime.now(timezone)
         try:

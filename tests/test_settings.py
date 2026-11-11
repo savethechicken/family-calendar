@@ -37,7 +37,7 @@ calendars:
 
 ICS_BODY = """BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Skylight//Test//EN
+PRODID:-//Family Calendar//Test//EN
 BEGIN:VEVENT
 UID:abc@example.com
 DTSTART:{start}

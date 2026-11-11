@@ -1,6 +1,6 @@
 /* Settings UI — plain JS, talks to /api/settings. */
 
-const TOKEN_KEY = "skylight-admin-token";
+const TOKEN_KEY = "family-calendar-admin-token";
 const PALETTE = [
   "#039be5",
   "#33b679",

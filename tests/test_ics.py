@@ -17,7 +17,7 @@ CALENDAR = CalendarConfig(
 
 ICS = """BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Skylight Tests//EN
+PRODID:-//Family Calendar Tests//EN
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
 UID:dentist
