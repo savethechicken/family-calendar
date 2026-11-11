@@ -1,0 +1,16 @@
+services:
+  family-calendar:
+    image: ghcr.io/savethechicken/family-calendar:latest
+    container_name: family-calendar
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # All mutable state (config.yaml + cache) lives here.
+      - ./data:/app/data
+    environment:
+      # Optional: lock down the settings page.
+      # FAMILY_CALENDAR_ADMIN_TOKEN: "pick-a-long-password"
+      TZ: America/New_York
+    # To build locally instead of pulling:
+    # build: .

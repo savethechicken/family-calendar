@@ -136,6 +136,40 @@ gitignored on purpose, because it holds your private calendar URLs.
 
 ---
 
+## Run with Docker (home server / NAS)
+
+A pre-built image is published to GitHub Container Registry on every push to
+`main` and every `v*` tag:
+
+```bash
+mkdir family-calendar && cd family-calendar
+curl -O https://raw.githubusercontent.com/savethechicken/family-calendar/main/docker-compose.yml
+docker compose up -d
+```
+
+Open <http://localhost:8080>. On first start the container creates
+`./data/config.yaml` from the bundled demo config; open
+<http://localhost:8080/settings> to add your calendars. All state (config +
+cache) lives in `./data`, so updating the image never touches your calendars:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+To build the image yourself instead:
+
+```bash
+git clone https://github.com/savethechicken/family-calendar.git
+cd family-calendar
+docker build -t family-calendar .
+docker run -d --name family-calendar -p 8080:8080 -v "$PWD/data:/app/data" family-calendar
+```
+
+Lock down the settings page by uncommenting `FAMILY_CALENDAR_ADMIN_TOKEN` in
+`docker-compose.yml`.
+
+---
+
 ## Put it on the TV (Raspberry Pi 4)
 
 ### What you need
@@ -493,6 +527,10 @@ family-calendar/
 │   └── family-calendar-kiosk.desktop
 ├── scripts/google_auth.py # one-time OAuth refresh-token helper
 ├── tests/
+├── .github/workflows/      # Docker image build & push (GHCR)
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── config.demo.yaml       # bootstrap config copied to config.yaml on first run
 ├── config.example.yaml    # documented template (manual reference)
 └── config.yaml            # your machine's config (gitignored)

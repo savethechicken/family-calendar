@@ -1,0 +1,14 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+cache
+.env
+config.yaml
+config.yaml.bak
+*.ics
+.DS_Store
+Thumbs.db
