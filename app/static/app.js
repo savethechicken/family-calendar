@@ -257,28 +257,57 @@ function renderTimeGutter() {
 }
 
 function renderAllDay(events, week) {
-  const allDay = events
-    .filter((event) => event.allDay)
-    .sort((a, b) => a.start.localeCompare(b.start));
-
   const container = $("#week-allday");
-  if (!allDay.length) {
+  const tz = state.config.display.timezone;
+  const byDay = new Map(week.days.map((day) => [day.key, []]));
+
+  for (const event of events) {
+    if (!event.allDay) continue;
+    const startCivil = civil.fromParts(zonedParts(new Date(event.start), tz));
+    const startKey = civil.key(startCivil);
+    let targetKey = startKey;
+    if (!byDay.has(targetKey)) {
+      const endCivil = civil.fromParts(zonedParts(new Date(event.end), tz));
+      const firstWeek = week.days[0].key;
+      const lastWeek = week.days[6].key;
+      if (startKey < firstWeek && civil.key(endCivil) >= firstWeek) {
+        targetKey = firstWeek;
+      } else if (startKey > lastWeek) {
+        continue;
+      } else {
+        continue;
+      }
+    }
+    byDay.get(targetKey).push(event);
+  }
+
+  const hasAny = [...byDay.values()].some((list) => list.length);
+  if (!hasAny) {
     container.innerHTML = "";
     container.classList.add("hidden");
     return;
   }
   container.classList.remove("hidden");
-  container.innerHTML = allDay
-    .map((event) => {
-      const color = event.color || "#5b8cff";
-      return `<span class="allday-chip" style="background:${color};color:${textColor(
-        color
-      )}" title="${escapeHtml(event.calendarName)}">
-        <span>${escapeHtml(event.title)}</span>
-        <span class="d">${escapeHtml(dayRangeText(event))}</span>
-      </span>`;
+
+  const cells = week.days
+    .map((day) => {
+      const chips = (byDay.get(day.key) || [])
+        .sort((a, b) => a.start.localeCompare(b.start))
+        .map((event) => {
+          const color = event.color || "#5b8cff";
+          return `<span class="allday-chip" style="background:${color};color:${textColor(
+            color
+          )}" title="${escapeHtml(event.calendarName)}">
+            <span>${escapeHtml(event.title)}</span>
+            <span class="d">${escapeHtml(dayRangeText(event))}</span>
+          </span>`;
+        })
+        .join("");
+      return `<div class="allday-day">${chips}</div>`;
     })
     .join("");
+
+  container.innerHTML = `<div class="gutter-spacer"></div>${cells}`;
 }
 
 function packOverlaps(events) {

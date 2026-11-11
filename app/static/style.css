@@ -468,27 +468,40 @@ body {
 
 .week-allday {
   border-bottom: 1px solid var(--border);
-  padding: 8px 10px 8px calc(var(--gutter-width) + 10px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: var(--gutter-width) repeat(7, minmax(0, 1fr));
+  gap: 4px 6px;
+  padding: 6px 6px 8px;
   min-height: 0;
   background: var(--surface-2);
 }
 
-.week-allday:empty {
+.week-allday:empty,
+.week-allday.hidden {
   display: none;
+}
+
+.allday-day {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 22px;
+  padding: 0 2px;
 }
 
 .allday-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px 5px;
+  padding: 3px 8px 4px;
   border-radius: 999px;
   color: #fff;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 550;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .allday-chip .d {
