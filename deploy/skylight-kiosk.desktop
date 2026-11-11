@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Skylight Calendar
+Comment=Family calendar kiosk
+Exec=__APP_DIR__/deploy/kiosk.sh
+Terminal=false
+X-GNOME-Autostart-enabled=true

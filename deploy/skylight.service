@@ -1,0 +1,18 @@
+[Unit]
+Description=Skylight family calendar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/skylight
+Environment=SKYLIGHT_CONFIG=/home/pi/skylight/config.yaml
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/home/pi/skylight/.env
+ExecStart=/home/pi/skylight/.venv/bin/python /home/pi/skylight/run.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

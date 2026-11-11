@@ -1,0 +1,67 @@
+# Copy this file to config.yaml and edit. Every option is optional unless
+# marked required; the defaults below are what the app actually uses.
+
+server:
+  host: 0.0.0.0 # 0.0.0.0 so the Pi can be reached from your LAN
+  port: 8080
+
+display:
+  title: "Family Calendar"
+  timezone: "America/New_York" # IANA name, e.g. Europe/London, America/Denver
+  week_starts_on: monday # monday | sunday
+  day_start_hour: 6 # first hour shown in the week grid
+  day_end_hour: 22 # last hour shown (events are clamped, not dropped)
+  refresh_seconds: 60 # how often the TV polls the server
+  show_clock: true
+  time_format: 12h # 12h | 24h
+  theme: auto # auto | light | dark (force one if the TV room needs it)
+  accent_color: "#5b8cff"
+
+weather: # Open-Meteo, no API key needed
+  enabled: false
+  latitude: 40.7128
+  longitude: -74.006
+  location_name: "Home"
+  units: imperial # imperial (F/mph) | metric (C/kmh)
+
+# Add as many calendars as you like. Each one is merged and color-coded.
+# Colors are any hex value; a Google/Apple palette works well:
+#   #039be5 blue   #33b679 green   #8e63ce purple   #e67c73 red
+#   #f6bf26 yellow #f4511e orange  #7986cb indigo   #616161 graphite
+calendars:
+  # --- Google Calendar via secret iCal address (easiest) -------------------
+  # Google Calendar -> Settings -> your calendar -> "Integrate calendar"
+  # -> "Secret address in iCal format". Keep this URL private.
+  - id: family
+    name: Family
+    color: "#039be5"
+    source:
+      type: ics
+      url: "${FAMILY_ICS_URL}" # e.g. https://calendar.google.com/calendar/ical/.../basic.ics
+      cache_ttl_seconds: 300
+
+  # --- A second feed, e.g. work, school or a partner's calendar -----------
+  # - id: work
+  #   name: Work
+  #   color: "#33b679"
+  #   source:
+  #     type: ics
+  #     url: "${WORK_ICS_URL}"
+
+  # --- Google Calendar API (optional upgrade) -----------------------------
+  # Requires a Google Cloud project + `python scripts/google_auth.py`.
+  # Gives live updates and per-event colors; read-only scope is enough.
+  # - id: google-family
+  #   name: Family (Google API)
+  #   color: "#8e63ce"
+  #   source:
+  #     type: google
+  #     calendar_id: "primary" # or the long ...@group.calendar.google.com id
+  #     client_id: "${GOOGLE_CLIENT_ID}"
+  #     client_secret: "${GOOGLE_CLIENT_SECRET}"
+  #     refresh_token: "${GOOGLE_REFRESH_TOKEN}"
+
+  # --- Outlook / iCloud / school portals ----------------------------------
+  # Anything that publishes an ICS URL works with type: ics.
+  # Outlook: Settings -> Calendar -> Shared calendars -> Publish a calendar
+  # iCloud: Calendar app -> Share -> Public Calendar -> copy the webcal link

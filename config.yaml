@@ -1,0 +1,34 @@
+# Working demo config — start the server and you immediately get a calendar.
+#
+# When you are ready for real data, replace the demo calendar below with an
+# ICS or Google source (see config.example.yaml).
+
+server:
+  host: 0.0.0.0
+  port: 8080
+
+display:
+  title: "Our Family"
+  timezone: "America/New_York" # change me: IANA name, e.g. Europe/London
+  week_starts_on: monday # monday | sunday
+  day_start_hour: 6
+  day_end_hour: 22
+  refresh_seconds: 60
+  show_clock: true
+  time_format: 12h # 12h | 24h
+  theme: auto # auto | light | dark
+  accent_color: "#5b8cff"
+
+weather:
+  enabled: false # set true and fill in latitude/longitude
+  latitude: 40.7128
+  longitude: -74.006
+  location_name: "Home"
+  units: imperial # imperial (F) | metric (C)
+
+calendars:
+  - id: family
+    name: Family
+    color: "#5b8cff"
+    source:
+      type: demo
