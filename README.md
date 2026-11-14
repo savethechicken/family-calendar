@@ -143,9 +143,25 @@ A pre-built image is published to GitHub Container Registry on every push to
 
 ```bash
 mkdir family-calendar && cd family-calendar
-curl -O https://raw.githubusercontent.com/savethechicken/family-calendar/main/docker-compose.yml
+cat > docker-compose.yml <<'EOF'
+services:
+  family-calendar:
+    image: ghcr.io/savethechicken/family-calendar:latest
+    container_name: family-calendar
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      # FAMILY_CALENDAR_ADMIN_TOKEN: "pick-a-long-password"
+      TZ: America/New_York
+EOF
 docker compose up -d
 ```
+
+> The repository is private, so `curl` from `raw.githubusercontent.com` returns a
+> 404. Create the file with the snippet above (or copy it from the repo).
 
 Open <http://localhost:8080>. On first start the container creates
 `./data/config.yaml` from the bundled demo config; open
@@ -155,6 +171,10 @@ cache) lives in `./data`, so updating the image never touches your calendars:
 ```bash
 docker compose pull && docker compose up -d
 ```
+
+> The image is private on GHCR. Log in first:
+> `echo $GITHUB_TOKEN | docker login ghcr.io -u savethechicken --password-stdin`
+> (create a PAT with `read:packages` at github.com/settings/tokens).
 
 To build the image yourself instead:
 
