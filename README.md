@@ -147,7 +147,7 @@ curl -O https://raw.githubusercontent.com/savethechicken/family-calendar/main/do
 docker compose up -d
 ```
 
-Open <http://localhost:8080>. On first start the container creates
+Open <http://localhost:8088>. On first start the container creates
 `./data/config.yaml` from the bundled demo config; open
 <http://localhost:8080/settings> to add your calendars. All state (config +
 cache) lives in `./data`, so updating the image never touches your calendars:
@@ -167,7 +167,7 @@ To build the image yourself instead:
 git clone https://github.com/savethechicken/family-calendar.git
 cd family-calendar
 docker build -t family-calendar .
-docker run -d --name family-calendar -p 8080:8080 -v "$PWD/data:/app/data" family-calendar
+docker run -d --name family-calendar -p 8088:8080 -v "$PWD/data:/app/data" family-calendar
 ```
 
 Lock down the settings page by uncommenting `FAMILY_CALENDAR_ADMIN_TOKEN` in
